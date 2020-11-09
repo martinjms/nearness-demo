@@ -1,1 +1,277 @@
-[{"id":"91a1b319.c133c","type":"tab","label":"Flow 2","disabled":false,"info":""},{"id":"f6f2187d.f17ca8","type":"tab","label":"Flow 1","disabled":false,"info":""},{"id":"c2527c61.350de","type":"http in","z":"f6f2187d.f17ca8","name":"Recording interface request","url":"/record","method":"get","upload":false,"swaggerDoc":"","x":220,"y":240,"wires":[["4c18bd6.028b144"]]},{"id":"4c18bd6.028b144","type":"template","z":"f6f2187d.f17ca8","name":"MediaRecorder API","field":"payload","fieldType":"msg","format":"html","syntax":"mustache","template":"<!DOCTYPE html>\n<html>\n  <head>\n    \n    <title>MediaRecorder API</title>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"keywords\" content=\"WebRTC getUserMedia MediaRecorder API\">\n    <link type=\"text/css\" rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css\">\n    <style>\n      button{\n        margin: 10px 5px;\n      }\n      li{\n        margin: 10px;\n      }\n      body{\n        width: 90%;\n        max-width: 960px;\n        margin: 0px auto;\n      }\n      #btns{\n      }\n      h1{\n        margin: 100px;\n      }\n    </style>\n  </head>\n  <body>\n    <p>Prest start and record a voice message. When you press stop the message will be send to the server automatically</p>\n    <div id='btns'>\n      <button  class=\"btn btn-default\" id='start'>Start</button>\n      <button  class=\"btn btn-default\" id='stop'>Stop</button>\n    </div>\n    <div>\n      <ul  class=\"list-unstyled\" id='ul'></ul>\n    </div>\n    <script src=\"https://code.jquery.com/jquery-2.2.0.min.js\"></script>\n    <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js\"></script>\n    <script>\n        'use strict'\n\n        let log = console.log.bind(console),\n        id = val => document.getElementById(val),\n        ul = id('ul'),\n        gUMbtn = id('gUMbtn'),\n        start = id('start'),\n        stop = id('stop'),\n        stream,\n        recorder,\n        counter=1,\n        chunks,\n        media;\n        media = {\n                tag: 'audio',\n                type: 'audio/ogg',\n                ext: '.ogg',\n                gUM: {audio: true}\n                }\n        navigator.mediaDevices.getUserMedia(media.gUM).then(_stream => {\n            stream = _stream;\n            start.removeAttribute('disabled');\n            recorder = new MediaRecorder(stream);\n            recorder.ondataavailable = e => {\n            chunks.push(e.data);\n            if(recorder.state == 'inactive')  makeLink();\n            };\n            log('got media successfully');\n        }).catch(log);\n\n\n        start.onclick = e => {\n            start.disabled = true;\n            stop.removeAttribute('disabled');\n            chunks=[];\n            recorder.start();\n        }\n\n\n        stop.onclick = e => {\n            stop.disabled = true;\n            recorder.stop();\n            start.removeAttribute('disabled');\n        }\n\n\n\n        function makeLink(){\n        let blob = new Blob(chunks, {type: media.type })\n            , url = URL.createObjectURL(blob)\n            , li = document.createElement('li')\n            , mt = document.createElement(media.tag)\n            , hf = document.createElement('a')\n        ;\n        mt.controls = true;\n        mt.src = url;\n        hf.href = url;\n        hf.download = `${counter++}${media.ext}`;\n        hf.innerHTML = `donwload ${hf.download}`;\n        li.appendChild(mt);\n        li.appendChild(hf);\n        ul.appendChild(li);\n        var fd = new FormData();\n        fd.append('fname', 'test.wav');\n        fd.append('data', blob);\n        $.ajax({\n            type: 'POST',\n            url: '/upload',\n            data: fd,\n            processData: false,\n            contentType: false\n        }).done(function(data) {\n            console.log(data);\n        });\n        }\n    </script>\n  </body>\n</html>","output":"str","x":450,"y":240,"wires":[["93422d38.541d5"]]},{"id":"93422d38.541d5","type":"http response","z":"f6f2187d.f17ca8","name":"Recording interface response","statusCode":"","headers":{},"x":690,"y":240,"wires":[]},{"id":"20a00cc1.9ba844","type":"http in","z":"f6f2187d.f17ca8","name":"Voice upload","url":"/upload","method":"post","upload":false,"swaggerDoc":"","x":170,"y":320,"wires":[["f8356db9.ede16","b0af91c9.9df77","f5780c5d.a6e7b","30ce7ef3.e27fc2"]]},{"id":"f5780c5d.a6e7b","type":"debug","z":"f6f2187d.f17ca8","name":"Console log output","active":true,"tosidebar":true,"console":true,"tostatus":false,"complete":"true","targetType":"full","statusVal":"","statusType":"auto","x":380,"y":300,"wires":[]},{"id":"b0af91c9.9df77","type":"function","z":"f6f2187d.f17ca8","name":"speech to text (Google)","func":"\nreturn msg;","outputs":1,"noerr":0,"initialize":"","finalize":"","x":390,"y":340,"wires":[["884dc045.bbf74"]]},{"id":"f8356db9.ede16","type":"function","z":"f6f2187d.f17ca8","name":"speech to text (Nvidia)","func":"\nreturn msg;","outputs":1,"noerr":0,"initialize":"","finalize":"","x":380,"y":380,"wires":[[]]},{"id":"884dc045.bbf74","type":"function","z":"f6f2187d.f17ca8","name":"GPT3 parse","func":"\nreturn msg;","outputs":1,"noerr":0,"initialize":"","finalize":"","x":730,"y":340,"wires":[[]]},{"id":"30ce7ef3.e27fc2","type":"function","z":"f6f2187d.f17ca8","name":"speech to text (Mycroft)","func":"\nreturn msg;","outputs":1,"noerr":0,"initialize":"","finalize":"","x":390,"y":420,"wires":[[]]}]
+[
+    {
+        "id": "91a1b319.c133c",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "c2527c61.350de",
+        "type": "http in",
+        "z": "f6f2187d.f17ca8",
+        "name": "Recording interface request",
+        "url": "/record",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 220,
+        "y": 240,
+        "wires": [
+            [
+                "4c18bd6.028b144"
+            ]
+        ]
+    },
+    {
+        "id": "4c18bd6.028b144",
+        "type": "template",
+        "z": "f6f2187d.f17ca8",
+        "name": "MediaRecorder API",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html>\n  <head>\n    \n    <title>MediaRecorder API</title>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"keywords\" content=\"WebRTC getUserMedia MediaRecorder API\">\n    <link type=\"text/css\" rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css\">\n    <style>\n      button{\n        margin: 10px 5px;\n      }\n      li{\n        margin: 10px;\n      }\n      body{\n        width: 90%;\n        max-width: 960px;\n        margin: 0px auto;\n      }\n      #btns{\n      }\n      h1{\n        margin: 100px;\n      }\n    </style>\n  </head>\n  <body>\n    <p>Prest start and record a voice message. When you press stop the message will be send to the server automatically</p>\n    <div id='btns'>\n      <button  class=\"btn btn-default\" id='start'>Start</button>\n      <button  class=\"btn btn-default\" id='stop'>Stop</button>\n    </div>\n    <div>\n      <ul  class=\"list-unstyled\" id='ul'></ul>\n    </div>\n    <script src=\"https://code.jquery.com/jquery-2.2.0.min.js\"></script>\n    <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js\"></script>\n    <script>\n        'use strict'\n\n        let log = console.log.bind(console),\n        id = val => document.getElementById(val),\n        ul = id('ul'),\n        gUMbtn = id('gUMbtn'),\n        start = id('start'),\n        stop = id('stop'),\n        stream,\n        recorder,\n        counter=1,\n        chunks,\n        media;\n        media = {\n                tag: 'audio',\n                type: 'audio/ogg',\n                ext: '.ogg',\n                gUM: {audio: true}\n                }\n        navigator.mediaDevices.getUserMedia(media.gUM).then(_stream => {\n            stream = _stream;\n            start.removeAttribute('disabled');\n            recorder = new MediaRecorder(stream);\n            recorder.ondataavailable = e => {\n            chunks.push(e.data);\n            if(recorder.state == 'inactive')  makeLink();\n            };\n            log('got media successfully');\n        }).catch(log);\n\n\n        start.onclick = e => {\n            start.disabled = true;\n            stop.removeAttribute('disabled');\n            chunks=[];\n            recorder.start();\n        }\n\n\n        stop.onclick = e => {\n            stop.disabled = true;\n            recorder.stop();\n            start.removeAttribute('disabled');\n        }\n\n\n\n        function makeLink(){\n        let blob = new Blob(chunks, {type: media.type })\n            , url = URL.createObjectURL(blob)\n            , li = document.createElement('li')\n            , mt = document.createElement(media.tag)\n            , hf = document.createElement('a')\n        ;\n        mt.controls = true;\n        mt.src = url;\n        hf.href = url;\n        hf.download = `${counter++}${media.ext}`;\n        hf.innerHTML = `donwload ${hf.download}`;\n        li.appendChild(mt);\n        li.appendChild(hf);\n        ul.appendChild(li);\n        var fd = new FormData();\n        fd.append('fname', 'test.wav');\n        fd.append('data', blob);\n        $.ajax({\n            type: 'POST',\n            url: '/upload',\n            data: fd,\n            processData: false,\n            contentType: false\n        }).done(function(data) {\n            console.log(data);\n        });\n        }\n    </script>\n  </body>\n</html>",
+        "output": "str",
+        "x": 450,
+        "y": 240,
+        "wires": [
+            [
+                "93422d38.541d5"
+            ]
+        ]
+    },
+    {
+        "id": "93422d38.541d5",
+        "type": "http response",
+        "z": "f6f2187d.f17ca8",
+        "name": "Recording interface response",
+        "statusCode": "",
+        "headers": {},
+        "x": 690,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "20a00cc1.9ba844",
+        "type": "http in",
+        "z": "f6f2187d.f17ca8",
+        "name": "Voice upload",
+        "url": "/upload",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 320,
+        "wires": [
+            [
+                "f8356db9.ede16",
+                "b0af91c9.9df77",
+                "f5780c5d.a6e7b",
+                "30ce7ef3.e27fc2",
+                "5a3785e2.42640c"
+            ]
+        ]
+    },
+    {
+        "id": "f5780c5d.a6e7b",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "Console log output",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 380,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "b0af91c9.9df77",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "speech to text (Google)",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 390,
+        "y": 340,
+        "wires": [
+            [
+                "884dc045.bbf74",
+                "9365c2d3.4de3b"
+            ]
+        ]
+    },
+    {
+        "id": "f8356db9.ede16",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "speech to text (Nvidia)",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 380,
+        "y": 380,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "884dc045.bbf74",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "GPT3 parse",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 610,
+        "y": 340,
+        "wires": [
+            [
+                "84699646.db92c8"
+            ]
+        ]
+    },
+    {
+        "id": "30ce7ef3.e27fc2",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "speech to text (Mycroft)",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 390,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9c274873.071148",
+        "type": "http response",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 1270,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "9b0fdc60.0d9c4",
+        "type": "template",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "This is the payload: {{payload}} !",
+        "output": "str",
+        "x": 1100,
+        "y": 340,
+        "wires": [
+            [
+                "9c274873.071148"
+            ]
+        ]
+    },
+    {
+        "id": "5a3785e2.42640c",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Sound sentiment analisys",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 390,
+        "y": 540,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9365c2d3.4de3b",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Text sentiment analisys",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 690,
+        "y": 440,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "84699646.db92c8",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Text to speech (Google)",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 830,
+        "y": 340,
+        "wires": [
+            [
+                "9b0fdc60.0d9c4"
+            ]
+        ]
+    },
+    {
+        "id": "2f5dc6a0.cb9b4a",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 640,
+        "wires": [
+            []
+        ]
+    }
+]
