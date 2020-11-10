@@ -257,7 +257,8 @@
                 "p": "payload"
             },
             {
-                "p": "topic",
+                "p": "chatLog",
+                "v": "",
                 "vt": "str"
             }
         ],
@@ -266,12 +267,80 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 170,
+        "payload": "Could you tell me what your favorite German thrash metal album is?",
+        "payloadType": "str",
+        "x": 160,
         "y": 640,
         "wires": [
-            []
+            [
+                "641f9857.ce2f98"
+            ]
         ]
+    },
+    {
+        "id": "641f9857.ce2f98",
+        "type": "gpt3-dialog",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "x": 550,
+        "y": 640,
+        "wires": [
+            [
+                "a000a06e.5014e",
+                "7bb253aa.f3f96c"
+            ]
+        ]
+    },
+    {
+        "id": "47f26afa.8ccd44",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "After cleanup",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 900,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "a000a06e.5014e",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "func": "response = msg.payload.replace(msg.prompt, '').split('\\n').filter(x => x!=\"\")\nreturn {payload:response};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 720,
+        "y": 640,
+        "wires": [
+            [
+                "47f26afa.8ccd44"
+            ]
+        ]
+    },
+    {
+        "id": "7bb253aa.f3f96c",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "GPT3 output",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 790,
+        "y": 740,
+        "wires": []
     }
 ]
