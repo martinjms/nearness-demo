@@ -14,6 +14,18 @@
         "info": ""
     },
     {
+        "id": "e48b74aa.a54e08",
+        "type": "websocket-listener",
+        "path": "/ws/voice-publish",
+        "wholemsg": "false"
+    },
+    {
+        "id": "8a02bfe.7e5044",
+        "type": "websocket-listener",
+        "path": "/ws/voice-received",
+        "wholemsg": "false"
+    },
+    {
         "id": "c2527c61.350de",
         "type": "http in",
         "z": "f6f2187d.f17ca8",
@@ -304,7 +316,7 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 900,
+        "x": 920,
         "y": 640,
         "wires": []
     },
@@ -342,5 +354,143 @@
         "x": 790,
         "y": 740,
         "wires": []
+    },
+    {
+        "id": "bcc6d2c1.3104e",
+        "type": "websocket in",
+        "z": "f6f2187d.f17ca8",
+        "name": "Voice In",
+        "server": "8a02bfe.7e5044",
+        "client": "",
+        "x": 340,
+        "y": 980,
+        "wires": [
+            [
+                "51085a9c.9e7534"
+            ]
+        ]
+    },
+    {
+        "id": "fae9d00f.c6b09",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 710,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "302b3faa.9443f",
+        "type": "http in",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "url": "/ws-test",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 340,
+        "y": 1100,
+        "wires": [
+            [
+                "fed40b5d.b64368"
+            ]
+        ]
+    },
+    {
+        "id": "fed40b5d.b64368",
+        "type": "template",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "text",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html>\n  <head>\n    \n    <title>MediaRecorder API</title>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"keywords\" content=\"WebRTC getUserMedia MediaRecorder API\">\n    <style>\n      button{\n        margin: 10px 5px;\n      }\n      li{\n        margin: 10px;\n      }\n      body{\n        width: 90%;\n        max-width: 960px;\n        margin: 0px auto;\n      }\n      h1{\n        margin: 100px;\n      }\n      ul {\n        list-style-type: none;\n      }\n    </style>\n  </head>\n  <body>\n    <p>Prest start and record a voice message. When you press stop the message will be send to the server automatically</p>\n    <div id='btns'>\n      <button  class=\"btn btn-default\" id='start'>Start</button>\n      <button  class=\"btn btn-default\" id='stop'>Stop</button>\n    </div>\n    <div>\n      <ul  class=\"list-unstyled\" id='ul'></ul>\n    </div>\n    <script>\n        'use strict'\n        var publishSocket = new WebSocket(\"ws://localhost:1880/ws/voice-received\"); //server receives\n        var listenSocket = new WebSocket(\"ws://localhost:1880/ws/voice-publish\"); //server publishes\n        let recorder;\n        let stream;\n        listenSocket.onmessage = function (event) {\n            console.log(event.data)\n            let ul = document.getElementById(\"ul\")\n            let li = document.createElement(\"li\")\n            let newAudioTag = document.createElement(\"audio\")\n            newAudioTag.src = URL.createObjectURL(event.data)\n            newAudioTag.controls = true\n            li.appendChild(newAudioTag)\n            ul.appendChild(li)\n        }\n        let chunks = []\n        let start = document.getElementById('start')\n        let stop = document.getElementById('stop')\n        let media = {\n                tag: 'audio',\n                type: 'audio/ogg',\n                ext: '.ogg',\n                gUM: {audio: true}\n                }\n        navigator.mediaDevices.getUserMedia(media.gUM).then(_stream => {\n            stream = _stream;\n            start.disabled= false\n            recorder = new MediaRecorder(stream);\n            recorder.ondataavailable = e => {\n            chunks.push(e.data);\n            if(recorder.state == 'inactive')  makeLink();\n            };\n            \n            start.onclick = e => {\n                start.disabled = true;\n                stop.removeAttribute('disabled');\n                chunks=[];\n                recorder.start();\n            }\n\n            stop.onclick = e => {\n                stop.disabled = true;\n                recorder.stop();\n                start.removeAttribute('disabled');\n            }\n        }).catch(console.log);\n\n        \n\n        let makeLink = () => {\n            let blob = new Blob(chunks, {type: media.type })\n            publishSocket.send(blob); // Send the msg object as a JSON-formatted string.\n        }\n    </script>\n  </body>\n</html>",
+        "output": "str",
+        "x": 520,
+        "y": 1100,
+        "wires": [
+            [
+                "3f4c03e4.27549c"
+            ]
+        ]
+    },
+    {
+        "id": "3f4c03e4.27549c",
+        "type": "http response",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 690,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "bee8bdd7.cdfe5",
+        "type": "websocket out",
+        "z": "f6f2187d.f17ca8",
+        "name": "Voice out",
+        "server": "e48b74aa.a54e08",
+        "client": "",
+        "x": 730,
+        "y": 980,
+        "wires": []
+    },
+    {
+        "id": "e94d23ae.2f6e",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"payload\":[26,69,223,163,159,66,134,129,1,66,247,129,1,66,242,129,4,66,243,129,8,66,130,132,119,101,98,109,66,135,129,4,66,133,129,2,24,83,128,103,1,255,255,255,255,255,255,255,21,73,169,102,153,42,215,177,131,15,66,64,77,128,134,67,104,114,111,109,101,87,65,134,67,104,114,111,109,101,22,84,174,107,191,174,189,215,129,1,115,197,135,233,4,117,53,38,198,119,131,129,2,134,134,65,95,79,80,85,83,99,162,147,79,112,117,115,72,101,97,100,1,1,0,0,128,187,0,0,0,0,0,225,141,181,132,71,59,128,0,159,129,1,98,100,129,32,31,67,182,117,1,255,255,255,255,255,255,255,231,129,0,163,65,106,129,0,0,128,123,131,108,106,2,46,198,131,180,225,245,113,80,212,3,121,27,113,222,138,192,238,100,198,182,189,252,236,191,87,183,98,29,120,131,161,96,211,9,212,168,59,149,109,87,183,38,190,30,246,155,150,164,148,171,213,140,207,192,179,61,195,20,17,49,48,250,132,3,58,5,229,240,121,42,23,93,236,41,54,156,51,180,141,171,175,54,245,113,175,211,128,114,54,106,228,136,210,130,153,50,229,12,157,90,44,13,231,125,32,211,241,30,225,7,133,50,183,161,171,90,235,52,80,215,159,209,84,109,188,90,58,125,140,134,210,72,249,79,65,215,15,139,247,247,161,80,72,71,26,217,86,166,42,196,98,158,46,1,24,146,14,249,9,219,151,45,118,159,74,7,67,109,135,107,57,40,97,140,213,11,235,69,21,8,129,52,93,120,155,220,112,211,1,61,220,3,93,102,254,129,86,24,52,9,69,33,156,178,190,24,49,176,65,150,254,101,3,128,86,148,198,118,119,15,187,3,152,210,68,179,253,230,238,107,115,181,205,30,157,219,229,119,103,39,154,25,119,206,162,20,32,1,86,101,32,13,48,205,110,12,175,63,67,136,160,86,116,207,68,41,60,203,213,109,3,80,178,247,205,167,187,14,128,237,147,50,43,140,184,29,195,197,153,228,83,45,177,11,60,140,42,237,151,8,43,200,140,116,207,135,14,170,28,167,137,128,118,179,211,126,56,213,49,198,154,221,168,109,248,183,133,159,217,117,255,129,51,219,27,161,202,248,45,235,170,20,142,57,120,155,30,45,122,19,34,59,238,163,65,92,129,0,60,128,123,131,118,114,137,4,169,114,28,186,161,233,99,176,18,16,27,72,25,23,96,202,180,39,198,246,19,19,75,127,192,211,240,227,43,104,177,82,18,177,174,39,12,81,11,84,224,125,147,92,24,135,211,210,44,127,205,181,46,162,102,90,172,224,122,236,152,163,92,150,9,220,243,214,172,70,20,229,191,55,173,167,116,213,29,162,185,181,68,246,45,120,247,97,58,150,112,111,175,212,233,95,39,164,222,26,117,200,47,141,8,170,2,122,105,71,87,232,118,150,128,156,39,86,79,217,14,140,45,24,187,189,54,56,161,232,200,254,62,58,247,193,41,29,221,135,236,98,49,201,111,97,35,127,165,149,45,233,12,81,39,18,25,148,45,47,238,149,137,136,15,239,7,163,17,13,108,215,135,54,214,222,134,200,202,183,74,15,20,15,85,150,162,84,242,42,104,83,167,234,223,77,19,68,36,118,108,21,11,207,203,68,146,52,161,224,31,25,221,184,208,103,146,223,34,50,5,62,196,69,92,66,244,196,251,60,32,247,169,168,2,52,196,242,1,14,103,83,180,202,91,24,39,25,81,54,184,122,251,73,61,129,182,144,231,57,124,36,120,187,180,70,123,23,194,104,53,150,49,232,229,95,107,194,148,84,130,153,133,111,31,210,57,22,143,140,50,129,4,57,250,77,115,134,2,239,85,14,15,88,13,44,68,63,32,134,200,79,222,81,16,195,102,20,67,135,70,168,207,248,2,37,255,89,225,54,172,63,83,69,138,148,173,10,163,65,68,129,0,120,128,123,131,108,109,29,186,96,196,182,94,105,82,137,224,247,177,69,183,88,72,23,189,192,219,88,243,141,254,16,190,132,159,244,31,119,164,156,98,119,49,59,224,200,81,236,167,31,16,88,151,54,2,92,47,117,14,61,117,124,176,41,81,54,191,125,241,228,245,110,184,209,121,66,92,22,177,10,43,210,146,125,143,61,123,41,177,234,63,10,68,244,96,229,170,124,64,156,134,75,173,81,85,209,2,29,2,93,74,191,82,47,186,24,149,3,50],\"_session\":{\"type\":\"websocket\",\"id\":\"62cb72bf.6996dc\"},\"_msgid\":\"d957695.fa08e98\"}",
+        "payloadType": "json",
+        "x": 430,
+        "y": 1040,
+        "wires": [
+            [
+                "51085a9c.9e7534"
+            ]
+        ]
+    },
+    {
+        "id": "51085a9c.9e7534",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "func": "// removes the _session property if the message to avoid \n// https://github.com/node-red/node-red/issues/1290\nreturn {payload:msg.payload};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 540,
+        "y": 980,
+        "wires": [
+            [
+                "bee8bdd7.cdfe5",
+                "fae9d00f.c6b09"
+            ]
+        ]
     }
 ]
